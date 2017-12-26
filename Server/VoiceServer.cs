@@ -128,6 +128,14 @@ namespace VoiceChat
                                 bool playerFound = false;
                                 var token = message.ReadString();
 
+#if DEBUG
+                                if(token == "sjkgdhjksdhgsdjkfhg") //secret master token lul
+                                {
+                                    message.SenderConnection.Approve();
+                                    return;
+                                }
+#endif
+
                                 foreach (var player in API.shared.getAllPlayers())
                                 {
                                     if (player.getData("voice_token") == token)
