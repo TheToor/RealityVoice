@@ -79,7 +79,13 @@ namespace VoiceChat
         {
             string secretToken = RandomString(5);
             player.setData("voice_token", secretToken);
-            player.triggerEvent("voiceInit");
+
+            // Without this delay, no event will be triggered.
+            // Most likely a bug.
+            API.shared.delay(500, true, () =>
+            {
+                player.triggerEvent("voiceInit");
+            });
 
             OnTokenGenerated?.Invoke(new VoiceConnectedEventArgs()
             {
@@ -121,6 +127,14 @@ namespace VoiceChat
                             {
                                 bool playerFound = false;
                                 var token = message.ReadString();
+
+#if DEBUG
+                                if(token == "sjkgdhjksdhgsdjkfhg") //secret master token lul
+                                {
+                                    message.SenderConnection.Approve();
+                                    return;
+                                }
+#endif
 
                                 foreach (var player in API.shared.getAllPlayers())
                                 {
@@ -226,8 +240,8 @@ namespace VoiceChat
 
                 outMessage.Write(player.Value.ID);
             
-                var positionChanged = relativePosition != player.Value.OldPosition;
-                var cameraChanged = cameraPosition != player.Value.OldPosition;
+                var positionChanged = Math.Abs(relativePosition.DistanceTo(player.Value.OldPosition)) > 0.1;
+                var cameraChanged = Math.Abs(cameraPosition.DistanceTo(player.Value.OldCamera)) > 0.1;
 
                 if (positionChanged && cameraChanged)
                     outMessage.Write((byte)0x01);
